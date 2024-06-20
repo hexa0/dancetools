@@ -9,8 +9,12 @@ namespace DanceTools
     public interface ICommand
     {
         string Name { get; }
+        string[] Aliases { get; }
+
+        bool AutocloseUI { get; }
+
         string Desc { get; }
-        void ExecCommand(string[] args);
+        void ExecCommand(string[] args, string alias);
         void DisplayCommandDesc();
         
 

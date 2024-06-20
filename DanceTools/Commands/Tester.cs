@@ -10,15 +10,18 @@ namespace DanceTools.Commands
     internal class Tester : ICommand
     {
         public string Name => "tester";
+        public string[] Aliases { get { return new string[] { "tst" }; } }
 
         public string Desc => "command for testing stuff. disabled in current build";
+
+        public bool AutocloseUI => false;
 
         public void DisplayCommandDesc()
         {
             DTConsole.Instance.PushTextToOutput(Desc, DanceTools.consoleInfoColor);
         }
 
-        public void ExecCommand(string[] args)
+        public void ExecCommand(string[] args, string alias)
         {
 
             DisplayCommandDesc();

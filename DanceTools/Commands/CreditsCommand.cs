@@ -10,15 +10,18 @@ namespace DanceTools.Commands
     internal class CreditsCommands : ICommand
     {
         public string Name => "setcredits";
+        public string[] Aliases { get { return new string[] { "sc", "credits", "credit", "setcredit", "cred" }; } }
 
         public string Desc => "Set credits to a value\nUsage: setcredits amount";
+
+        public bool AutocloseUI => false;
 
         public void DisplayCommandDesc()
         {
             DTConsole.Instance.PushTextToOutput(Desc, DanceTools.consoleInfoColor);
         }
 
-        public void ExecCommand(string[] args)
+        public void ExecCommand(string[] args, string alias)
         {
             if (!DanceTools.CheckHost()) return;
 

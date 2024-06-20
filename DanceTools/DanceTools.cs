@@ -2,23 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.NetworkInformation;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.UI;
 using HarmonyLib;
-using Unity;
-using Unity.Netcode;
 using BepInEx.Logging;
-using DunGen;
 using GameNetcodeStuff;
 using BepInEx.Configuration;
 using System.IO;
 using System.Reflection;
-using DanceTools.Commands;
-using static UnityEngine.EventSystems.EventTrigger;
 
 namespace DanceTools
 {
@@ -61,11 +51,15 @@ namespace DanceTools
         public static Color consoleInputFieldColor = new Color(0, 0, 0, 0.78f);
         public static bool consoleClearAfterOpening = false;
 
+        //cheats
+        internal static bool cheatsEnabled = true;
+
         //host
         internal static bool isHost;
 
         //player
         internal static bool playerGodMode = false;
+        internal static bool playerNoclipping = false;
 
         public void Awake()
         {
@@ -121,7 +115,8 @@ namespace DanceTools
             {
                 mls.LogFatal("No console assets present!!!!\nPlease check that you've installed everything correctly!!");
             }
-            
+
+            NetworkStuff.Awake();
         }
 
         private void InitConfig()
@@ -173,7 +168,7 @@ namespace DanceTools
         private static void GetAllEnemiesAndItems(ref SelectableLevel[] ___moonsCatalogueList)
         {
             GetAllItems();
-            DTConsole.Instance.PushTextToOutput($"Ran get enemies", "white");
+            // DTConsole.Instance.PushTextToOutput($"Ran get enemies", "white");
             SelectableLevel[] array = ___moonsCatalogueList;
             SpawnableEnemy enemy = new SpawnableEnemy();
             string temp = "Spawnable Enemy List Updated:\n";
@@ -312,12 +307,27 @@ namespace DanceTools
             {
                 DTConsole.Instance.PushTextToOutput($"You must be host to use this command", DanceTools.consoleErrorColor);
                 return false;
-            } else
+            }
+            else
             {
                 return true;
             }
         }
 
+
+        public static bool CheckCheats()
+        {
+            //check cheatsEnabled
+            if (!cheatsEnabled)
+            {
+                DTConsole.Instance.PushTextToOutput($"You must have cheats enabled to use this command", DanceTools.consoleErrorColor);
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
 
         //to display messages on hud (like warning message)
         public static void DMNotice(string title, string msg)

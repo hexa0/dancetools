@@ -10,7 +10,11 @@ namespace DanceTools.Commands
     {
         //Command that shows list of commands and also description of commands if used as "help cmd"
         public string Name => "help";
+        public string[] Aliases { get { return new string[] { "hlp" }; } }
+
         public string Desc => "Shows list of commands and what each command does";
+
+        public bool AutocloseUI => false;
 
         public void DisplayCommandDesc()
         {
@@ -19,24 +23,43 @@ namespace DanceTools.Commands
             for (int i = 0; i < DanceTools.commands.Count; i++)
             {
                 output += $"\n{DanceTools.commands[i].Name}";
+                if (DanceTools.commands[i].Aliases != null)
+                {
+                    foreach (var alias in DanceTools.commands[i].Aliases)
+                    {
+                        output += $" | {alias}";
+                    }
+                }
             }
 
             DTConsole.Instance.PushTextToOutput($"If you need help or have feedback, join the LC Modding discord!\nList Of Commands: \n{output}", DanceTools.consoleSuccessColor);
         }
 
-        public void ExecCommand(string[] args)
+        public void ExecCommand(string[] args, string alias)
         {
             if (args.Length < 1)
             {
                 DisplayCommandDesc();
                 return;
             }
-            bool cmdFound = false;
 
+            bool cmdFound = false;
 
             for (int i = 0; i < DanceTools.commands.Count; i++)
             {
-                if (DanceTools.commands[i].Name.ToLower() == args[0].ToLower())
+                var matches = DanceTools.commands[i].Name.ToLower() == args[0].ToLower();
+                if (!matches && DanceTools.commands[i].Aliases != null)
+                {
+                    foreach (var commandAlias in DanceTools.commands[i].Aliases)
+                    {
+                        if (commandAlias.ToLower() == args[0].ToLower())
+                        {
+                            matches = true;
+                        }
+                    }
+                }
+
+                if (matches)
                 {
                     cmdFound = true;
                     DTConsole.Instance.PushTextToOutput(DanceTools.commands[i].Desc, DanceTools.consoleSuccessColor);
@@ -44,7 +67,7 @@ namespace DanceTools.Commands
                 }
             }
 
-            if(!cmdFound)
+            if (!cmdFound)
             {
                 DTConsole.Instance.PushTextToOutput($"Command not found", DanceTools.consoleErrorColor);
             }

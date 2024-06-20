@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace DanceTools
@@ -50,11 +52,24 @@ namespace DanceTools
 
             for (int i = 0; i < DanceTools.commands.Count; i++) 
             {
-                if (DanceTools.commands[i].Name.ToLower() == args[0].ToLower())
+                var usedAlias = DanceTools.commands[i].Name;
+                var matches = DanceTools.commands[i].Name.ToLower() == args[0].ToLower();
+                if (!matches && DanceTools.commands[i].Aliases != null)
+                {
+                    foreach (var alias in DanceTools.commands[i].Aliases)
+                    {
+                        if (alias.ToLower() == args[0].ToLower())
+                        {
+                            usedAlias = alias;
+                            matches = true;
+                        }
+                    }
+                }
+
+                if (matches)
                 {
                     cmdFound = true;
-                    args = args.Skip(1).ToArray(); //get rid of command part
-                    TriggerCommand(DanceTools.commands[i], args);
+                    TriggerCommand(DanceTools.commands[i], args.Skip(1).ToArray(), usedAlias);
                     break;
                 }
             }
@@ -64,9 +79,13 @@ namespace DanceTools
             }
             //if (commands.Contains(msg[0].ToLower()))
         }
-        public void TriggerCommand(ICommand cmd, string[] args)
+        public void TriggerCommand(ICommand cmd, string[] args, string alias)
         {
-            cmd.ExecCommand(args);
+            cmd.ExecCommand(args, alias);
+            if (cmd.AutocloseUI)
+            {
+                DTConsole.Instance.ToggleUI();
+            }
         }
 
     }
@@ -81,15 +100,19 @@ namespace DanceTools
         public Image outputBackground;
         public TMP_InputField input;
         public TextMeshProUGUI output;
+        public ScrollRect scroll;
         private string oldOutput = "";
         public static DTConsole Instance;
         internal static string[] sillyMessages = 
-            { 
+        { 
             "Hey there!",
             "Console colors are customizable in the config o.o",
             "Haiii! >.<",
             "Dancing on the moon or something..",
-            "If you need help or have feedback, join the LC Modding discord!"};
+            "If you need help or have feedback, join the LC Modding discord!"
+        };
+        public List<string> history = new List<string>();
+        private int historyIndex = 0;
 
         private void Awake()
         {
@@ -98,6 +121,8 @@ namespace DanceTools
             holder = transform.Find("Holder").gameObject;
             input = transform.Find("Holder/InputBackground/InputField").GetComponent<TMP_InputField>();
             output = transform.Find("Holder/OutputBackground/Scroll/Viewport/OutputField").GetComponent<TextMeshProUGUI>();
+            scroll = transform.Find("Holder/OutputBackground/Scroll").GetComponent<ScrollRect>();
+
             DanceTools.mls.LogInfo($"Setup holder: {holder.name}");
             DanceTools.mls.LogInfo($"Setup input: {input.name}");
             DanceTools.mls.LogInfo($"Setup output: {output.name}");
@@ -132,7 +157,18 @@ namespace DanceTools
         //User input
         public void OnEditEnd(string txt)
         {
-            PushTextToOutput($"> {input.text}", DanceTools.consolePlayerColor); 
+            PushTextToOutput($"c{NetworkStuff.CurrentClient.actualClientId}@dancetools ~> {input.text}", DanceTools.consolePlayerColor); 
+            if (history.Count >= 1 && history[0] != input.text)
+            {
+                history.Add(input.text);
+                historyIndex = history.Count;
+            }
+            else if (history.Count < 1)
+            {
+                history.Add(input.text);
+                historyIndex = history.Count;
+            }
+
             //do stuff with input.text
             DTCmdHandler.Instance.CheckCommand(input.text);
             //...
@@ -142,8 +178,19 @@ namespace DanceTools
         //Every response sent back
         public void PushTextToOutput(string text, string color = "#00FFF3")
         {
-            output.text = $"<color={color}>{text}</color>\n{oldOutput}";
+            if (scroll.normalizedPosition.y <= 0.01f) // we're already scrolled all the way down, scroll back down on the next frame
+            {
+                StartCoroutine(ScrollToBottom());
+            }
+
+            output.text = $"{oldOutput}\n<color={color}>{text}</color>";
             oldOutput = output.text;
+        }
+
+        public IEnumerator ScrollToBottom()
+        {
+            yield return 0;
+            scroll.normalizedPosition = new Vector2(0, 0);
         }
 
         //ui key
@@ -153,6 +200,38 @@ namespace DanceTools
             if (DanceTools.keyboardShortcut.IsDown())
             {
                 ToggleUI();
+            }
+
+            var direction = 0;
+
+            if (Keyboard.current.upArrowKey.wasPressedThisFrame)
+            {
+                direction = 1;
+            }
+            else if (Keyboard.current.downArrowKey.wasPressedThisFrame)
+            {
+                direction = -1;
+            }
+
+            if (direction != 0)
+            {
+                // DTConsole.Instance.PushTextToOutput(historyIndex.ToString());
+                // DTConsole.Instance.PushTextToOutput(history.Count.ToString());
+
+                historyIndex = Mathf.Clamp(historyIndex - direction, 0, history.Count);
+
+                if (historyIndex == history.Count)
+                {
+                    input.text = "";
+                }
+                else
+                {
+                    if (history[historyIndex] != null)
+                    {
+                        input.text = history[historyIndex];
+                        input.caretPosition = input.text.Length;
+                    }
+                }
             }
         }
 
@@ -164,15 +243,13 @@ namespace DanceTools
             if (isUIOpen)
             {
                 holder.gameObject.SetActive(false);
-                if(DanceTools.isIngame)
+                if (DanceTools.isIngame)
                 {
                     //for when the player is in the main menu. weird case, otherwise it gets stuck
                     GameNetworkManager.Instance.localPlayerController.quickMenuManager.isMenuOpen = false;
                     Cursor.lockState = CursorLockMode.Locked;
                     Cursor.visible = false;
                 }
-                
-
             }
             else
             {

@@ -10,15 +10,18 @@ namespace DanceTools.Commands
     internal class LightsCommand : ICommand
     {
         public string Name => "lights";
+        public string[] Aliases { get { return new string[] { "li" }; } }
 
         public string Desc => "Toggles lights inside the facility\nUsage: lights on/off";
+
+        public bool AutocloseUI => false;
 
         public void DisplayCommandDesc()
         {
             DTConsole.Instance.PushTextToOutput(Desc, DanceTools.consoleInfoColor);
         }
 
-        public void ExecCommand(string[] args)
+        public void ExecCommand(string[] args, string alias)
         {
             if (!DanceTools.CheckHost()) return;
 

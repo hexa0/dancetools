@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Netcode;
 using UnityEngine;
 
 namespace DanceTools.Commands
@@ -11,19 +7,20 @@ namespace DanceTools.Commands
     internal class EnemySpawn : ICommand
     {
         public string Name => "enemy";
+        public string[] Aliases { get { return new string[] { "e", "monster" }; } }
 
         public string Desc => "Spawns enemies\nUsage: enemy name amount (onme/inside/outside)\nType just the command without arguments \nto see list of enemies";
+
+        public bool AutocloseUI => false;
 
         public void DisplayCommandDesc()
         {
             DTConsole.Instance.PushTextToOutput(Desc, DanceTools.consoleInfoColor);
         }
 
-        public void ExecCommand(string[] args)
+        public void ExecCommand(string[] args, string alias)
         {
-
-            //check if host
-            if (!DanceTools.CheckHost()) return;
+            if (!DanceTools.CheckCheats()) return;
 
             //if first arguemnt doesnt exist, show how to use command
             if (args.Length < 1)
@@ -54,7 +51,6 @@ namespace DanceTools.Commands
                 string enemyName = args[0].ToLower();
                 DanceTools.SpawnableEnemy enemyToSpawn;
                 int amount = 1;
-                string message = "";
                 string outsideInsideText = "";
                 Vector3 spawnPos = Vector3.zero;
                 int specialSpawnCase = -1; //-1 = default spawn
@@ -126,39 +122,38 @@ namespace DanceTools.Commands
                 }
 
                 //check where to spawn enemies and spawn them
-                for (int i = 0; i < amount; i++)
+                switch(specialSpawnCase)
                 {
-                    switch(specialSpawnCase)
-                    {
-                        case -1: //default spawn
-                            //inside or outside spawn depending on where enemy is meant to be
-                            if (enemyToSpawn.isOutside)
-                            {
-                                OutsideSpawner(enemyToSpawn);
-                            }
-                            else
-                            {
-                                InsideSpawner(enemyToSpawn);
-                            }
-                            break;
-
-                        case 0: //onme case. spawn it on top of the player
-                            SpawnEnemy(enemyToSpawn, spawnPos);
-                            break;
-
-                        case 1: //inside spawn
-                            InsideSpawner(enemyToSpawn);
-                            break;
-
-                        case 2: //outside spawn
+                    case -1: //default spawn
+                        //inside or outside spawn depending on where enemy is meant to be
+                        if (enemyToSpawn.isOutside)
+                        {
                             OutsideSpawner(enemyToSpawn);
-                            break;
-                    }
-                }
+                        }
+                        else
+                        {
+                            InsideSpawner(enemyToSpawn);
+                        }
+                        break;
 
-                //spawn message
-                message = $"Spawned {amount}x {enemyToSpawn.name} {outsideInsideText}";
-                DTConsole.Instance.PushTextToOutput(message, DanceTools.consoleSuccessColor);
+                    case 0: //onme case. spawn it on top of the player
+                        NetworkStuff.SendEnemyMessage(new NetworkStuff.SerializableGenericSpawnData(DanceTools.spawnableEnemies.IndexOf(enemyToSpawn), spawnPos, (uint)amount));
+                        break;
+
+                    case 1: //inside spawn
+                        for (int i = 0; i < amount; i++)
+                        {
+                            InsideSpawner(enemyToSpawn);
+                        }
+                        break;
+
+                    case 2: //outside spawn
+                        for (int i = 0; i < amount; i++)
+                        {
+                            OutsideSpawner(enemyToSpawn);
+                        }
+                        break;
+                }
             }
             catch (Exception e)
             {
@@ -167,30 +162,15 @@ namespace DanceTools.Commands
             }
         }
 
-        //special case spawners
         private void InsideSpawner(DanceTools.SpawnableEnemy enemyToSpawn)
         {
             int randomIndex = UnityEngine.Random.Range(0, DanceTools.currentRound.allEnemyVents.Length);
-            SpawnEnemy(enemyToSpawn, DanceTools.currentRound.allEnemyVents[randomIndex].floorNode.position);
+            NetworkStuff.SendEnemyMessage(new NetworkStuff.SerializableGenericSpawnData(DanceTools.spawnableEnemies.IndexOf(enemyToSpawn), DanceTools.currentRound.allEnemyVents[randomIndex].floorNode.position, 1));
         }
         private void OutsideSpawner(DanceTools.SpawnableEnemy enemyToSpawn)
         {
             int randomIndex = UnityEngine.Random.Range(0, DanceTools.currentRound.outsideAINodes.Length);
-            SpawnEnemy(enemyToSpawn, DanceTools.currentRound.outsideAINodes[randomIndex].transform.position);
-        }
-        //special case spawners end
-
-        //instantiate an enemy prefab and spawn it on the network
-        private void SpawnEnemy(DanceTools.SpawnableEnemy enemy, Vector3 spawnPos)
-        {
-            GameObject gameObject = UnityEngine.Object.Instantiate(enemy.prefab, spawnPos, Quaternion.identity);
-            gameObject.GetComponentInChildren<NetworkObject>().Spawn(destroyWithScene: true);
-
-            //sanity checker aka debug
-            if (DanceTools.consoleDebug)
-            {
-                DTConsole.Instance.PushTextToOutput($"{enemy.name} pos: {spawnPos}", "white");
-            }
+            NetworkStuff.SendEnemyMessage(new NetworkStuff.SerializableGenericSpawnData(DanceTools.spawnableEnemies.IndexOf(enemyToSpawn), DanceTools.currentRound.outsideAINodes[randomIndex].transform.position, 1));
         }
     }
 }

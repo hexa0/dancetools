@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Netcode;
+﻿using System.Linq;
 using UnityEngine;
-using UnityEngine.Windows;
 
 namespace DanceTools.Commands
 {
     internal class ItemCommand : ICommand
     {
         public string Name => "item";
+        public string[] Aliases { get { return new string[] { "itm", "i" }; } }
 
         public string Desc => "Spawns items on you\nUsage: item itemID/itemName amount value weight\nType just the command without arguments \nto see list of items";
+
+        public bool AutocloseUI => false;
 
         public void DisplayCommandDesc()
         {
@@ -23,10 +20,9 @@ namespace DanceTools.Commands
         //args string array doesn't include the original command
         //ie: if you type "item 50 3 1"
         //you will only receive "50 3 1" in args
-        public void ExecCommand(string[] args)
+        public void ExecCommand(string[] args, string alias)
         {
-            //check if host
-            if (!DanceTools.CheckHost()) return;
+            if (!DanceTools.CheckCheats()) return;
 
             if (args.Length < 1)
             {
@@ -36,7 +32,7 @@ namespace DanceTools.Commands
                 {
                     itemPrint += $"\n{DanceTools.spawnableItems[i].id} | {DanceTools.spawnableItems[i].name}";
                 }
-                //mls.LogInfo($"{itemPrint}"); itemList.itemsList.Count
+
                 DTConsole.Instance.PushTextToOutput($"{itemPrint}", DanceTools.consoleSuccessColor);
                 DTConsole.Instance.PushTextToOutput("Command usage: item itemID/itemName amount value weight", DanceTools.consoleInfoColor);
                 return;
@@ -120,40 +116,7 @@ namespace DanceTools.Commands
                 }
             }
 
-
-            //spawn multiple items
-            for (int i = 0; i < amount; i++)
-            {
-                
-                GameObject obj = UnityEngine.Object.Instantiate(StartOfRound.Instance.allItemsList.itemsList[index].spawnPrefab, spawnPos, Quaternion.identity);
-                //.itemProperties.creditsWorth
-                
-                ScanNodeProperties scan = obj.GetComponent<ScanNodeProperties>();
-                if (scan == null)
-                {
-                    scan = obj.AddComponent<ScanNodeProperties>(); //attach scanning node for value
-                    scan.scrapValue = value;
-                    scan.subText = $"Value: ${value}";
-                }
-
-                //GrabbableObject
-                //idk which one actually sets the value properly, do all of them
-                obj.GetComponent<GrabbableObject>().fallTime = 0f;
-                obj.GetComponent<GrabbableObject>().scrapValue = value;
-                if(weight != -1f)
-                {
-                    obj.GetComponent<GrabbableObject>().itemProperties.weight = weight;
-                }
-                obj.GetComponent<GrabbableObject>().itemProperties.creditsWorth = value;
-                obj.GetComponent<GrabbableObject>().SetScrapValue(value); //give value to it
-                //item.weight = 6969f;
-
-                //spawn it after giving it values
-                obj.GetComponent<NetworkObject>().Spawn();
-
-            }
-            DTConsole.Instance.PushTextToOutput($"Spawned {amount}x item {StartOfRound.Instance.allItemsList.itemsList[index].itemName}({index}) valued at {value} (weight: {weight} (buggy))", DanceTools.consoleSuccessColor);
-
+            NetworkStuff.SendItemMessage(new NetworkStuff.SerializableItemSpawnData(index, spawnPos, (uint)amount, weight, value));
         }
     }
 }
