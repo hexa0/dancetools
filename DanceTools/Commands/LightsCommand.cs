@@ -1,9 +1,4 @@
-﻿using GameNetcodeStuff;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace DanceTools.Commands
 {
@@ -23,7 +18,7 @@ namespace DanceTools.Commands
 
         public void ExecCommand(string[] args, string alias)
         {
-            if (!DanceTools.CheckHost()) return;
+            if (!DanceTools.CheckCheats()) return;
 
             if (args.Length < 1)
             {
@@ -31,26 +26,28 @@ namespace DanceTools.Commands
                 return;
             }
 
+            string color = DanceTools.consoleInfoColor;
             string text = "";
             try
             {
                 switch(args[0])
                 {
                     case "on":
-                        DanceTools.currentRound.SwitchPower(true);
+                        NetworkStuff.SendLightsMessage(true);
                         text = "Indoor lights turned on";
                         break;
                     case "off":
-                        DanceTools.currentRound.SwitchPower(false);
+                        NetworkStuff.SendLightsMessage(false);
                         text = "Indoor lights turned off";
                         break;
                 }
             } catch (Exception)
             {
+                color = DanceTools.consoleErrorColor;
                 text = "Failed to toggle lights";
             }
 
-            DTConsole.Instance.PushTextToOutput(text, DanceTools.consoleInfoColor);
+            DTConsole.Instance.PushTextToOutput(text, color);
 
         }
     }

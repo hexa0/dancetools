@@ -14,6 +14,7 @@ namespace DanceTools
             enemyMessage.OnReceivedFromClient += OnEnemyMessage;
             itemMessage.OnReceivedFromClient += OnItemMessage;
             creditsMessage.OnReceivedFromClient += OnCreditsMessage;
+            lightsMessage.OnReceivedFromClient += OnLightsMessage;
         }
 
         public static PlayerControllerB CurrentClient
@@ -216,6 +217,36 @@ namespace DanceTools
             else
             {
                 DTConsole.Instance.PushTextToOutput($"c{clientId} was blocked from setting the credits to {creditsAmount} as cheats are disabled");
+            }
+        }
+
+        private static LethalClientMessage<bool> lightsMessage = new LethalClientMessage<bool>(identifier: "danceToolsLightsMessage");
+
+        public static void SendLightsMessage(bool lightsEnabled)
+        {
+            try
+            {
+                lightsMessage.SendAllClients(lightsEnabled);
+            }
+            catch
+            {
+                DanceTools.mls.LogError("[NetworkStuff] [SendCheatsToggledMessage] failed!!!");
+            }
+        }
+
+        private static void OnLightsMessage(bool lightsEnabled, ulong clientId)
+        {
+            if (DanceTools.cheatsEnabled)
+            {
+                DTConsole.Instance.PushTextToOutput($"c{clientId} has set the indoor light state to {lightsEnabled}", DanceTools.consoleInfoColor);
+                if (isHost)
+                {
+                    DanceTools.currentRound.SwitchPower(lightsEnabled);
+                }
+            }
+            else
+            {
+                DTConsole.Instance.PushTextToOutput($"c{clientId} was blocked from setting the indoor light state to {lightsEnabled} as cheats are disabled");
             }
         }
     }
