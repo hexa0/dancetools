@@ -3,7 +3,7 @@
     public class SpeedCommand : ICommand
     {
         public string Name => "speed";
-        public string[] Aliases { get { return new string[] { "sp", "fast" }; } }
+        public string[] Aliases { get { return new string[] { "sp", "spd", "fast" }; } }
 
         public string Desc => "toggles the vanilla PlayerControllerB.isSpeedCheating";
 

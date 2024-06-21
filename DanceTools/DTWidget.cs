@@ -158,16 +158,16 @@ namespace DanceTools
         public void OnEditEnd(string txt)
         {
             PushTextToOutput($"c{NetworkStuff.CurrentClient.actualClientId}@dancetools ~> {input.text}", DanceTools.consolePlayerColor); 
-            if (history.Count >= 1 && history[0] != input.text)
+            if (history.Count >= 1 && history[history.Count - 1] != input.text)
             {
                 history.Add(input.text);
-                historyIndex = history.Count;
             }
             else if (history.Count < 1)
             {
                 history.Add(input.text);
-                historyIndex = history.Count;
             }
+
+            historyIndex = history.Count;
 
             //do stuff with input.text
             DTCmdHandler.Instance.CheckCommand(input.text);

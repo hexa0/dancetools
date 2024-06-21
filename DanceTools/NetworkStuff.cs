@@ -137,7 +137,7 @@ namespace DanceTools
         {
             try
             {
-                itemMessage.SendServer(spawnMessage);
+                itemMessage.SendAllClients(spawnMessage);
             }
             catch
             {
