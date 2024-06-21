@@ -176,7 +176,7 @@ namespace DanceTools
             input.ActivateInputField();
         }
         //Every response sent back
-        public void PushTextToOutput(string text, string color = "#00FFF3")
+        public void PushTextToOutput(string text, string color = "#92d9f7")
         {
             if (scroll.normalizedPosition.y <= 0.01f) // we're already scrolled all the way down, scroll back down on the next frame
             {

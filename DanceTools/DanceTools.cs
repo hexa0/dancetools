@@ -123,17 +123,17 @@ namespace DanceTools
         {
             //console customization
             //text colors
-            consolePlayerColor = Config.Bind("Console Customization", "Console Player Color", "#00FFF3", "Set player console color").Value;
-            consoleSuccessColor = Config.Bind("Console Customization", "Console Success Color", "green", "Set success message console color").Value;
-            consoleInfoColor = Config.Bind("Console Customization", "Console Info Color", "yellow", "Set info message console color").Value;
-            consoleErrorColor = Config.Bind("Console Customization", "Console Error Color", "red", "Set error/fail message console color").Value;
+            consolePlayerColor = Config.Bind("Console Customization", "Console Player Color", "#92d9f7", "Set player console color").Value;
+            consoleSuccessColor = Config.Bind("Console Customization", "Console Success Color", "#bce36d", "Set success message console color").Value;
+            consoleInfoColor = Config.Bind("Console Customization", "Console Info Color", "#86afdb", "Set info message console color").Value;
+            consoleErrorColor = Config.Bind("Console Customization", "Console Error Color", "#e8666a", "Set error/fail message console color").Value;
 
             //console colors
-            consoleOutputFieldColor = Config.Bind("Console Customization", "Console Output Field Color (Hex)", new Color(0, 0, 0, 0.78f), "Sets the color and opacity of the OUTPUT field background\nUse this tool to get a hex value with alpha: https://rgbacolorpicker.com/rgba-to-hex").Value;
-            consoleInputFieldColor = Config.Bind("Console Customization", "Console Input Field Color (Hex)", new Color(0, 0, 0, 0.78f), "Sets the color and opacity of the INPUT field background\nUse this tool to get a hex value with alpha: https://rgbacolorpicker.com/rgba-to-hex").Value;
+            consoleOutputFieldColor = Config.Bind("Console Customization", "Console Output Field Color (Hex)", new Color(30f/255f, 28f / 255f, 36f / 255f, 1f), "Sets the color and opacity of the OUTPUT field background\nUse this tool to get a hex value with alpha: https://rgbacolorpicker.com/rgba-to-hex").Value;
+            consoleInputFieldColor = Config.Bind("Console Customization", "Console Input Field Color (Hex)", new Color(54f / 255f, 50f / 255f, 64f / 255f, 1f), "Sets the color and opacity of the INPUT field background\nUse this tool to get a hex value with alpha: https://rgbacolorpicker.com/rgba-to-hex").Value;
 
             //other console settings
-            keyboardShortcut = Config.Bind("Console Customization", "Console Keybind", new KeyboardShortcut(KeyCode.BackQuote), "Set the shortcut key to open the console. Avaiable keys: https://docs.unity3d.com/ScriptReference/KeyCode.html").Value;
+            keyboardShortcut = Config.Bind("Console Customization", "Console Keybind", new KeyboardShortcut(KeyCode.Semicolon), "Set the shortcut key to open the console. Avaiable keys: https://docs.unity3d.com/ScriptReference/KeyCode.html").Value;
             consoleDebug = Config.Bind("Console Customization", "Console Debug", false, "Print debug text to console").Value;
             consoleClearAfterOpening = Config.Bind("Console Customization", "Auto-Clear console when opening", false, "Clears the console output window each time it is opened").Value;
 
