@@ -116,6 +116,7 @@ namespace DanceTools
                 mls.LogFatal("No console assets present!!!!\nPlease check that you've installed everything correctly!!");
             }
 
+            mls.LogInfo("Initializing DanceTools Networking");
             NetworkStuff.Awake();
         }
 

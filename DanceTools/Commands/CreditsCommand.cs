@@ -23,7 +23,7 @@ namespace DanceTools.Commands
 
         public void ExecCommand(string[] args, string alias)
         {
-            if (!DanceTools.CheckHost()) return;
+            if (!DanceTools.CheckCheats()) return;
 
             if (args.Length < 1)
             {
@@ -42,11 +42,7 @@ namespace DanceTools.Commands
                 return;
             }
 
-            Terminal terminal = (Terminal)UnityEngine.Object.FindObjectOfType(typeof(Terminal));
-
-            terminal.SyncGroupCreditsServerRpc(creditsVal, terminal.numberOfItemsInDropship);
-
-            DTConsole.Instance.PushTextToOutput($"Set group credits to {creditsVal}", DanceTools.consoleSuccessColor);
+            NetworkStuff.SendCreditsMessage(creditsVal);
         }
     }
 }

@@ -13,6 +13,7 @@ namespace DanceTools
             cheatsToggledMessage.OnReceivedFromClient += OnCheatsToggledMessage;
             enemyMessage.OnReceivedFromClient += OnEnemyMessage;
             itemMessage.OnReceivedFromClient += OnItemMessage;
+            creditsMessage.OnReceivedFromClient += OnCreditsMessage;
         }
 
         public static PlayerControllerB CurrentClient
@@ -129,6 +130,10 @@ namespace DanceTools
                     }
                 }
             }
+            else
+            {
+                DTConsole.Instance.PushTextToOutput($"c{clientId} was blocked from sending {spawnMessage} as cheats are disabled");
+            }
         }
 
         private static LethalClientMessage<SerializableItemSpawnData> itemMessage = new LethalClientMessage<SerializableItemSpawnData>(identifier: "danceToolsItemSpawn");
@@ -179,6 +184,38 @@ namespace DanceTools
             else
             {
                 DTConsole.Instance.PushTextToOutput($"c{clientId} was blocked from sending {spawnMessage} as cheats are disabled");
+            }
+        }
+
+        private static LethalClientMessage<int> creditsMessage = new LethalClientMessage<int>(identifier: "danceToolsSetCredits");
+
+        public static void SendCreditsMessage(int creditsAmount)
+        {
+            try
+            {
+                creditsMessage.SendAllClients(creditsAmount);
+            }
+            catch
+            {
+                DanceTools.mls.LogError("[NetworkStuff] [SendCheatsToggledMessage] failed!!!");
+            }
+        }
+
+        private static void OnCreditsMessage(int creditsAmount, ulong clientId)
+        {
+            if (DanceTools.cheatsEnabled)
+            {
+                DTConsole.Instance.PushTextToOutput($"c{clientId} has set the credits to {creditsAmount}", DanceTools.consoleInfoColor);
+                if (isHost)
+                {
+                    Terminal terminal = Object.FindObjectOfType<Terminal>();
+
+                    Object.FindObjectOfType<Terminal>().SyncGroupCreditsServerRpc(creditsAmount, terminal.numberOfItemsInDropship);
+                }
+            }
+            else
+            {
+                DTConsole.Instance.PushTextToOutput($"c{clientId} was blocked from setting the credits to {creditsAmount} as cheats are disabled");
             }
         }
     }
