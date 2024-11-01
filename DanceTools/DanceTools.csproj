@@ -133,4 +133,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy $(TargetDir)$(TargetName).pdb "C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\plugins\organized\dev\dancemoon-DanceTools-1.1.4\"
+copy $(TargetDir)$(TargetName).dll "C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\plugins\organized\dev\dancemoon-DanceTools-1.1.4\"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

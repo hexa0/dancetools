@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace DanceTools.Commands
@@ -35,7 +36,7 @@ namespace DanceTools.Commands
 
                 for (int i = 0; i < DanceTools.spawnableEnemies.Count; i++)
                 {
-                    consoleInfo += $"\n{DanceTools.spawnableEnemies[i].name} | {(DanceTools.spawnableEnemies[i].isOutside ? "outside" : "inside")}";
+                    consoleInfo += $"\n{i} | {DanceTools.spawnableEnemies[i].name} | {(DanceTools.spawnableEnemies[i].isOutside ? "outside" : "inside")}";
                 }
                 //DanceTools.currentRound.currentLevel.OutsideEnemies
                 //DanceTools.currentRound.outsideAINodes <- spawnplace
@@ -48,7 +49,22 @@ namespace DanceTools.Commands
             {
                 //vars
 
+                int enemyIndex = 0;
                 string enemyName = args[0].ToLower();
+
+                if (int.TryParse(args[0], out enemyIndex))
+                {
+                    if (enemyIndex < DanceTools.spawnableEnemies.Count)
+                    {
+                        enemyName = DanceTools.spawnableEnemies[enemyIndex].name.ToLower();
+                    }
+                    else
+                    {
+                        DTConsole.Instance.PushTextToOutput($"Enemy {enemyIndex} doesn't exist in current list.\nSometimes you need to load a certain map to load an enemy reference.", DanceTools.consoleErrorColor);
+                        return;
+                    }
+                }
+
                 DanceTools.SpawnableEnemy enemyToSpawn;
                 int amount = 1;
                 string outsideInsideText = "";
@@ -121,18 +137,26 @@ namespace DanceTools.Commands
                     }
                 }
 
+                DTConsole.Instance.PushTextToOutput(amount.ToString());
+
                 //check where to spawn enemies and spawn them
-                switch(specialSpawnCase)
+                switch (specialSpawnCase)
                 {
                     case -1: //default spawn
                         //inside or outside spawn depending on where enemy is meant to be
                         if (enemyToSpawn.isOutside)
                         {
-                            OutsideSpawner(enemyToSpawn);
+                            for (int i = 0; i < amount; i++)
+                            {
+                                OutsideSpawner(enemyToSpawn);
+                            }
                         }
                         else
                         {
-                            InsideSpawner(enemyToSpawn);
+                            for (int i = 0; i < amount; i++)
+                            {
+                                InsideSpawner(enemyToSpawn);
+                            }
                         }
                         break;
 
