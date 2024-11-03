@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DanceTools.Commands
+﻿namespace DanceTools.Commands
 {
     internal class ClearCommand : ICommand
     {

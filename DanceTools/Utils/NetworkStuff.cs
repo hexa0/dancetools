@@ -3,7 +3,7 @@ using LethalNetworkAPI;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace DanceTools
+namespace DanceTools.Utils
 {
     public static class NetworkStuff
     {
@@ -15,6 +15,7 @@ namespace DanceTools
             itemMessage.OnReceivedFromClient += OnItemMessage;
             creditsMessage.OnReceivedFromClient += OnCreditsMessage;
             lightsMessage.OnReceivedFromClient += OnLightsMessage;
+            teleportMessage.OnReceivedFromClient += OnTeleportMessage;
         }
 
         public static PlayerControllerB CurrentClient
@@ -121,7 +122,7 @@ namespace DanceTools
         {
             if (DanceTools.cheatsEnabled)
             {
-                DTConsole.Instance.PushTextToOutput($"c{clientId} has spawned {spawnMessage.count} '{DanceTools.spawnableEnemies[spawnMessage.id].name}' enemy(s) at '{spawnMessage.location}'", DanceTools.consoleInfoColor);
+                DTConsole.Instance.PushTextToOutput($"{NameUtils.FormatPlayerName(clientId.GetPlayerController())} has spawned {spawnMessage.count} '{DanceTools.spawnableEnemies[spawnMessage.id].name}' enemy(s) at '{spawnMessage.location}'", DanceTools.consoleInfoColor);
                 if (isHost)
                 {
                     for (int i = 0; i < spawnMessage.count; i++)
@@ -133,7 +134,7 @@ namespace DanceTools
             }
             else
             {
-                DTConsole.Instance.PushTextToOutput($"c{clientId} was blocked from sending {spawnMessage} as cheats are disabled");
+                DTConsole.Instance.PushTextToOutput($"{NameUtils.FormatPlayerName(clientId.GetPlayerController())} was blocked from sending {spawnMessage} as cheats are disabled");
             }
         }
 
@@ -155,7 +156,7 @@ namespace DanceTools
         {
             if (DanceTools.cheatsEnabled)
             {
-                DTConsole.Instance.PushTextToOutput($"c{clientId} has spawned {spawnMessage.count} '{StartOfRound.Instance.allItemsList.itemsList[spawnMessage.id].itemName}' item(s) at `{spawnMessage.location}` valued at `{spawnMessage.value}` weighing `{spawnMessage.weight}`", DanceTools.consoleInfoColor);
+                DTConsole.Instance.PushTextToOutput($"{NameUtils.FormatPlayerName(clientId.GetPlayerController())} has spawned {spawnMessage.count} '{StartOfRound.Instance.allItemsList.itemsList[spawnMessage.id].itemName}' item(s) at `{spawnMessage.location}` valued at `{spawnMessage.value}` weighing `{spawnMessage.weight}`", DanceTools.consoleInfoColor);
                 if (isHost)
                 {
                     for (int i = 0; i < spawnMessage.count; i++)
@@ -184,7 +185,7 @@ namespace DanceTools
             }
             else
             {
-                DTConsole.Instance.PushTextToOutput($"c{clientId} was blocked from sending {spawnMessage} as cheats are disabled");
+                DTConsole.Instance.PushTextToOutput($"{NameUtils.FormatPlayerName(clientId.GetPlayerController())} was blocked from sending {spawnMessage} as cheats are disabled");
             }
         }
 
@@ -206,7 +207,7 @@ namespace DanceTools
         {
             if (DanceTools.cheatsEnabled)
             {
-                DTConsole.Instance.PushTextToOutput($"c{clientId} has set the credits to {creditsAmount}", DanceTools.consoleInfoColor);
+                DTConsole.Instance.PushTextToOutput($"{NameUtils.FormatPlayerName(clientId.GetPlayerController())} has set the credits to {creditsAmount}", DanceTools.consoleInfoColor);
                 if (isHost)
                 {
                     Terminal terminal = Object.FindObjectOfType<Terminal>();
@@ -216,7 +217,7 @@ namespace DanceTools
             }
             else
             {
-                DTConsole.Instance.PushTextToOutput($"c{clientId} was blocked from setting the credits to {creditsAmount} as cheats are disabled");
+                DTConsole.Instance.PushTextToOutput($"{NameUtils.FormatPlayerName(clientId.GetPlayerController())} was blocked from setting the credits to {creditsAmount} as cheats are disabled");
             }
         }
 
@@ -238,7 +239,7 @@ namespace DanceTools
         {
             if (DanceTools.cheatsEnabled)
             {
-                DTConsole.Instance.PushTextToOutput($"c{clientId} has set the indoor light state to {lightsEnabled}", DanceTools.consoleInfoColor);
+                DTConsole.Instance.PushTextToOutput($"{NameUtils.FormatPlayerName(clientId.GetPlayerController())} has set the indoor light state to {lightsEnabled}", DanceTools.consoleInfoColor);
                 if (isHost)
                 {
                     DanceTools.currentRound.SwitchPower(lightsEnabled);
@@ -246,7 +247,57 @@ namespace DanceTools
             }
             else
             {
-                DTConsole.Instance.PushTextToOutput($"c{clientId} was blocked from setting the indoor light state to {lightsEnabled} as cheats are disabled");
+                DTConsole.Instance.PushTextToOutput($"{NameUtils.FormatPlayerName(clientId.GetPlayerController())} was blocked from setting the indoor light state to {lightsEnabled} as cheats are disabled");
+            }
+        }
+
+        [System.Serializable]
+        public class SerializableTeleportData
+        {
+            public Vector3 targetPosition;
+            public Quaternion targetRotation;
+            public ulong[] targets;
+
+            public SerializableTeleportData(Vector3 targetPosition, Quaternion targetRotation, ulong[] targets)
+            {
+                this.targetPosition = targetPosition;
+                this.targetRotation = targetRotation;
+                this.targets = targets;
+            }
+        }
+
+        private static LethalClientMessage<SerializableTeleportData> teleportMessage = new LethalClientMessage<SerializableTeleportData>(identifier: "danceToolsTeleport");
+
+        public static void SendTeleportMessage(Vector3 targetPosition, Quaternion targetRotation, ulong[] targets)
+        {
+            try
+            {
+                teleportMessage.SendAllClients(new SerializableTeleportData(targetPosition, targetRotation, targets));
+            }
+            catch
+            {
+                DanceTools.mls.LogError("[NetworkStuff] [SendTeleportMessage] failed!!!");
+            }
+        }
+
+        private static void OnTeleportMessage(SerializableTeleportData teleportMessage, ulong clientId)
+        {
+            if (DanceTools.cheatsEnabled)
+            {
+                DTConsole.Instance.PushTextToOutput($"{NameUtils.FormatPlayerName(clientId.GetPlayerController())} has teleported {teleportMessage.targets.Length} player(s) to {teleportMessage.targetPosition} facing {teleportMessage.targetRotation}", DanceTools.consoleInfoColor);
+                foreach (var item in teleportMessage.targets)
+                {
+                    if (item == CurrentClient.actualClientId)
+                    {
+                        CurrentClient.transform.position = teleportMessage.targetPosition;
+                        CurrentClient.transform.rotation = teleportMessage.targetRotation;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                DTConsole.Instance.PushTextToOutput($"{NameUtils.FormatPlayerName(clientId.GetPlayerController())} was blocked from teleporting {teleportMessage.targets.Length} player(s) as cheats are disabled");
             }
         }
     }

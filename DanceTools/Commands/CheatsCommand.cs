@@ -1,4 +1,6 @@
-﻿namespace DanceTools.Commands
+﻿using DanceTools.Utils;
+
+namespace DanceTools.Commands
 {
     internal class CheatsCommand : ICommand
     {

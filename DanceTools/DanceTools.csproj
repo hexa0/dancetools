@@ -113,23 +113,27 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\BringCommand.cs" />
     <Compile Include="Commands\CheatsCommand.cs" />
     <Compile Include="Commands\ClearCommand.cs" />
     <Compile Include="Commands\CloseConsole.cs" />
     <Compile Include="Commands\CreditsCommand.cs" />
     <Compile Include="Commands\EnemySpawn.cs" />
     <Compile Include="Commands\GodCommand.cs" />
+    <Compile Include="Commands\GotoCommand.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
     <Compile Include="Commands\ItemCommand.cs" />
     <Compile Include="Commands\LightsCommand.cs" />
     <Compile Include="Commands\Noclip\NoclipBehavior.cs" />
     <Compile Include="Commands\Noclip\NoclipCommand.cs" />
+    <Compile Include="Utils\PlayerNameFormatter.cs" />
     <Compile Include="Commands\SpeedCommand.cs" />
+    <Compile Include="Commands\TeleportCommand.cs" />
     <Compile Include="Commands\Tester.cs" />
     <Compile Include="DanceTools.cs" />
     <Compile Include="DTWidget.cs" />
     <Compile Include="ICommand.cs" />
-    <Compile Include="NetworkStuff.cs" />
+    <Compile Include="Utils\NetworkStuff.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
